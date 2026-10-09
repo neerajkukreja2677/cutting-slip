@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cutting Slip · Kukreja Furnishings</title>
+<style>
+  :root {
+    --ink: #1c1915;
+    --muted: #6d6458;
+    --line: #e4dccf;
+    --paper: #f7f3ec;
+    --card: #fffdf9;
+    --accent: #8a3d24;
+    --accent-2: #2f4a3c;
+    --warn: #a15c12;
+    --ok: #2f4a3c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Candara, "Trebuchet MS", sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+  }
+  header.app {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    padding: 14px 18px;
+    background: #241c16;
+    color: #f6efe6;
+  }
+  header.app h1 { margin: 0; font-size: 18px; letter-spacing: .02em; font-weight: 650; }
+  header.app p { margin: 2px 0 0; color: #d8cbbd; font-size: 12px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  button, .btn {
+    border: 1px solid #c9bba8;
+    background: #fff;
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font: inherit;
+    cursor: pointer;
+  }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  button.ghost { background: transparent; color: #f6efe6; border-color: #6d5c4d; }
+  button.danger { color: #8a2a1c; }
+  main { display: grid; grid-template-columns: 1fr 320px; gap: 16px; padding: 16px; max-width: 1180px; margin: 0 auto; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+  .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  input, select { width: 100%; border: 1px solid #d9cfc2; border-radius: 8px; padding: 8px 10px; font: inherit; background: #fff; }
+  h2 { margin: 16px 0 8px; font-size: 15px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 11px; color: var(--muted); font-weight: 650; padding: 6px 4px; }
+  td { padding: 4px; vertical-align: top; }
+  td input { padding: 7px 8px; }
+  .num { text-align: right; }
+  .amt { font-variant-numeric: tabular-nums; padding-top: 10px; text-align: right; font-weight: 650; }
+  .row-tools { width: 34px; }
+  .totals { display: flex; justify-content: flex-end; gap: 18px; margin-top: 10px; font-variant-numeric: tabular-nums; }
+  .totals b { color: var(--accent-2); }
+  .side h3 { margin: 0 0 8px; font-size: 14px; }
+  .slip-item, .list-item { display: flex; justify-content: space-between; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .slip-item button, .list-item button { padding: 4px 8px; }
+  .note { font-size: 12px; color: var(--muted); }
+  .tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+  .tabs button[aria-pressed="true"] { background: var(--accent-2); color: #fff; border-color: var(--accent-2); }
+  #printSheet { display: none; }
+  @media (max-width: 860px) {
+    main { grid-template-columns: 1fr; }
+    header.app { flex-direction: column; align-items: stretch; }
+  }
+  @media print {
+    body { background: #fff; }
+    header.app, main, .no-print { display: none !important; }
+    #printSheet { display: block; color: #000; font-family: "Times New Roman", Times, serif; padding: 8mm; }
+    #printSheet h1 { text-align: center; font-size: 20px; margin: 0 0 10px; letter-spacing: .04em; }
+    #printSheet .head { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px; }
+    #printSheet table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    #printSheet th, #printSheet td { border: 1px solid #222; padding: 4px 6px; }
+    #printSheet th { background: #f3f3f3; }
+    #printSheet .sign { display: flex; justify-content: space-between; margin-top: 28px; font-size: 13px; }
+    #printSheet .sign span { min-width: 160px; border-top: 1px solid #222; padding-top: 4px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+<header class="app">
+  <div>
+    <h1>Kukreja Furnishings</h1>
+    <p>Cutting slip / tailor slip · order numbers continue from 33551</p>
+  </div>
+  <div class="actions">
+    <button class="ghost" id="newBtn" type="button">New slip</button>
+    <button class="primary" id="saveBtn" type="button">Save</button>
+    <button class="ghost" id="printBtn" type="button">Print</button>
+    <button class="ghost" id="dupBtn" type="button">Copy as new</button>
+  </div>
+</header>
+<main>
+  <section class="card">
+    <div class="meta">
+      <div><label>Order No</label><input id="orderNo" inputmode="numeric"></div>
+      <div><label>Date</label><input id="slipDate" type="date"></div>
+      <div><label>Tailor</label><input id="tailor" list="tailorList" placeholder="Select or type a new tailor"></div>
+      <div><label>Job</label><input id="job" list="jobList" placeholder="Select or type a new job"></div>
+    </div>
+    <datalist id="tailorList"></datalist>
+    <datalist id="jobList"></datalist>
+    <datalist id="particularList"></datalist>
+    <datalist id="labourList"></datalist>
+
+    <h2>Particulars</h2>
+    <table>
+      <thead><tr><th>Particular</th><th>Qty</th><th>Rate</th><th>Received</th><th>Taken</th><th>Amount</th><th></th></tr></thead>
+      <tbody id="materialBody"></tbody>
+    </table>
+    <button type="button" id="addMaterial">Add particular</button>
+
+    <h2>Labour</h2>
+    <table>
+      <thead><tr><th>Labour</th><th>Qty</th><th>Rate</th><th>Received</th><th>Taken</th><th>Amount</th><th></th></tr></thead>
+      <tbody id="labourBody"></tbody>
+    </table>
+    <button type="button" id="addLabour">Add labour</button>
+    <div class="totals">
+      <span>Material <b id="matTotal">0</b></span>
+      <span>Labour <b id="labTotal">0</b></span>
+      <span>Total <b id="grandTotal">0</b></span>
+    </div>
+    <p class="note">Type a new tailor, job, particular, or labour name. It is saved and shown next time. Last rate for that name is filled in automatically.</p>
+  </section>
+  <aside class="side">
+    <div class="card">
+      <h3>Saved slips</h3>
+      <div id="history"></div>
+      <p class="note">Saved on this phone or computer only. Use Export if you want a backup.</p>
+      <div class="actions" style="margin-top:8px">
+        <button type="button" id="exportBtn">Export</button>
+        <button type="button" id="importBtn">Import</button>
+        <input id="importFile" type="file" accept="application/json" hidden>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h3>Lists</h3>
+      <div class="tabs">
+        <button type="button" data-list="particulars" aria-pressed="true">Particulars</button>
+        <button type="button" data-list="labour" aria-pressed="false">Labour</button>
+        <button type="button" data-list="tailors" aria-pressed="false">Tailors</button>
+        <button type="button" data-list="jobs" aria-pressed="false">Jobs</button>
+      </div>
+      <div id="listEditor"></div>
+      <div style="display:flex; gap:6px; margin-top:8px">
+        <input id="newListValue" placeholder="Add to this list">
+        <button type="button" id="addListValue">Add</button>
+      </div>
+    </div>
+  </aside>
+</main>
+<section id="printSheet"></section>
+<script>
+const KEY = "kukreja-cutting-slip-v1";
+const seed = {
+  nextOrder: 33551,
+  rates: {
+    "156305": 695, "156306": 695, "156307": 695, "156308": 695,
+    "Roman Track": 450, "Dimout for Roman": 345, "Regular Lining": 110,
+    "AP-Stitching": 225, "Lining Stitching": 100, "Roman Labour": 110,
+    "Installation": 350, "Track Installation": 350, "Transport Charges": 1500
+  },
+  lists: {
+    particulars: ["Running Nos.","Roman Track","Dimout for Roman","Regular Lining","Curtain Track","Curtain Hooks","Ceiling Brackets","Wall Brackets (Single)","Wall Brackets (Double)","Dimout for Curtains"],
+    tailors: ["ALAM","PADMAKAR","SAHDEV","NITIN","RAMESH","DINESH WP","NA"],
+    jobs: ["FOR STITCHING","ONLY DELIVERY","WALLPAPER","BLINDS","MATTRESS"],
+    labour: ["AP-Stitching","Lining Stitching","Roman Labour","Track Installation","Transport Charges","Eyelet Stitching","Wallpaper Installation","Wallpaper Removal","Wooden Flooring Installation"]
+  },
+  slips: []
+};
+let db = load();
+let currentId = null;
+let listTab = "particulars";
+
+function load() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (!saved) return structuredClone(seed);
+    saved.lists = Object.assign(structuredClone(seed.lists), saved.lists || {});
+    saved.rates = Object.assign({}, seed.rates, saved.rates || {});
+    saved.slips = saved.slips || [];
+    saved.nextOrder = saved.nextOrder || 33551;
+    return saved;
+  } catch { return structuredClone(seed); }
+}
+function persist() { localStorage.setItem(KEY, JSON.stringify(db)); }
+function money(n) { return Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 }); }
+function today() { return new Date().toISOString().slice(0, 10); }
+function blankRow() { return { name: "", qty: "", rate: "", received: "", taken: "" }; }
+function amount(row) { return (Number(row.qty) || 0) * (Number(row.rate) || 0); }
+
+function fillLists() {
+  const map = { tailorList: db.lists.tailors, jobList: db.lists.jobs, particularList: db.lists.particulars, labourList: db.lists.labour };
+  Object.entries(map).forEach(([id, values]) => {
+    document.getElementById(id).innerHTML = values.map(v => `<option value="${escapeAttr(v)}"></option>`).join("");
+  });
+}
+function escapeAttr(s) { return String(s).replace(/&/g,"&").replace(/"/g,""").replace(/</g,"<"); }
+function remember(listName, value) {
+  const text = String(value || "").trim();
+  if (!text) return;
+  if (!db.lists[listName].some(v => v.toLowerCase() === text.toLowerCase())) db.lists[listName].push(text);
+}
+
+function renderRows(bodyId, rows, listName) {
+  const body = document.getElementById(bodyId);
+  body.innerHTML = rows.map((row, i) => `
+    <tr data-i="${i}">
+      <td><input class="name" list="${listName}" value="${escapeAttr(row.name)}"></td>
+      <td><input class="qty num" inputmode="decimal" value="${escapeAttr(row.qty)}"></td>
+      <td><input class="rate num" inputmode="decimal" value="${escapeAttr(row.rate)}"></td>
+      <td><input class="received num" inputmode="decimal" value="${escapeAttr(row.received)}"></td>
+      <td><input class="taken num" inputmode="decimal" value="${escapeAttr(row.taken)}"></td>
+      <td class="amt">${money(amount(row))}</td>
+      <td class="row-tools"><button type="button" class="danger del">×</button></td>
+    </tr>`).join("");
+}
+function readRows(bodyId) {
+  return [...document.querySelectorAll(`#${bodyId} tr`)].map(tr => ({
+    name: tr.querySelector(".name").value.trim(),
+    qty: tr.querySelector(".qty").value,
+    rate: tr.querySelector(".rate").value,
+    received: tr.querySelector(".received").value,
+    taken: tr.querySelector(".taken").value
+  })).filter(r => r.name || r.qty || r.rate);
+}
+function currentSlip() {
+  return {
+    id: currentId || crypto.randomUUID(),
+    orderNo: Number(document.getElementById("orderNo").value) || db.nextOrder,
+    date: document.getElementById("slipDate").value,
+    tailor: document.getElementById("tailor").value.trim(),
+    job: document.getElementById("job").value.trim(),
+    materials: readRows("materialBody"),
+    labour: readRows("labourBody"),
+    savedAt: new Date().toISOString()
+  };
+}
+function totals() {
+  const slip = currentSlip();
+  const mat = slip.materials.reduce((s, r) => s + amount(r), 0);
+  const lab = slip.labour.reduce((s, r) => s + amount(r), 0);
+  document.getElementById("matTotal").textContent = money(mat);
+  document.getElementById("labTotal").textContent = money(lab);
+  document.getElementById("grandTotal").textContent = money(mat + lab);
+}
+function showSlip(slip, asNew) {
+  currentId = asNew ? null : slip.id;
+  document.getElementById("orderNo").value = asNew ? db.nextOrder : slip.orderNo;
+  document.getElementById("slipDate").value = asNew ? today() : (slip.date || today());
+  document.getElementById("tailor").value = slip.tailor || "";
+  document.getElementById("job").value = slip.job || "";
+  renderRows("materialBody", slip.materials?.length ? slip.materials : [blankRow()], "particularList");
+  renderRows("labourBody", slip.labour?.length ? slip.labour : [blankRow()], "labourList");
+  totals();
+}
+function newSlip() {
+  showSlip({ materials: [blankRow(), blankRow()], labour: [blankRow()] }, true);
+}
+function saveSlip() {
+  const slip = currentSlip();
+  remember("tailors", slip.tailor);
+  remember("jobs", slip.job);
+  slip.materials.forEach(r => { remember("particulars", r.name); if (r.rate) db.rates[r.name] = Number(r.rate); });
+  slip.labour.forEach(r => { remember("labour", r.name); if (r.rate) db.rates[r.name] = Number(r.rate); });
+  const idx = db.slips.findIndex(s => s.id === slip.id);
+  if (idx >= 0) db.slips[idx] = slip; else db.slips.unshift(slip);
+  if (slip.orderNo >= db.nextOrder) db.nextOrder = slip.orderNo + 1;
+  currentId = slip.id;
+  persist();
+  fillLists();
+  renderHistory();
+  renderListEditor();
+  alert("Saved slip " + slip.orderNo);
+}
+function renderHistory() {
+  const box = document.getElementById("history");
+  if (!db.slips.length) { box.innerHTML = "<p class='note'>No slips saved yet.</p>"; return; }
+  box.innerHTML = db.slips.slice(0, 30).map(s => `
+    <div class="slip-item">
+      <div><b>${s.orderNo}</b> · ${s.tailor || "—"}<br><span class="note">${s.date || ""} · ${s.job || ""}</span></div>
+      <span><button type="button" data-open="${s.id}">Open</button></span>
+    </div>`).join("");
+}
+function renderListEditor() {
+  const values = db.lists[listTab] || [];
+  document.getElementById("listEditor").innerHTML = values.map((v, i) => `
+    <div class="list-item"><span>${escapeAttr(v)}</span><button type="button" class="danger" data-remove="${i}">Remove</button></div>`).join("") || "<p class='note'>Empty list.</p>";
+}
+function printSlip() {
+  const s = currentSlip();
+  const rows = (title, items) => `
+    <h3 style="margin:14px 0 6px">${title}</h3>
+    <table><thead><tr><th>Particulars</th><th>Qty</th><th>Rate</th><th>Received</th><th>Taken</th><th>Amount</th></tr></thead>
+    <tbody>${items.map(r => `<tr><td>${escapeAttr(r.name)}</td><td>${escapeAttr(r.qty)}</td><td>${escapeAttr(r.rate)}</td><td>${escapeAttr(r.received)}</td><td>${escapeAttr(r.taken)}</td><td>${money(amount(r))}</td></tr>`).join("")}</tbody></table>`;
+  const mat = s.materials.reduce((n, r) => n + amount(r), 0);
+  const lab = s.labour.reduce((n, r) => n + amount(r), 0);
+  document.getElementById("printSheet").innerHTML = `
+    <h1>CUTTING SLIP / TAILORS SLIP</h1>
+    <div class="head"><span>Order No : ${s.orderNo}</span><span>Date : ${s.date || ""}</span></div>
+    <div class="head"><span>Tailor : ${escapeAttr(s.tailor)}</span><span>JOB : ${escapeAttr(s.job)}</span></div>
+    ${rows("Particulars", s.materials)}
+    ${rows("Labour Part", s.labour)}
+    <p style="text-align:right">Material ${money(mat)} · Labour ${money(lab)} · Total ${money(mat + lab)}</p>
+    <div class="sign"><span>Prepared by</span><span>Store</span><span>Tailor</span></div>`;
+  window.print();
+}
+function onTableInput(e) {
+  const tr = e.target.closest("tr");
+  if (!tr) return;
+  if (e.target.classList.contains("name")) {
+    const name = e.target.value.trim();
+    const rate = tr.querySelector(".rate");
+    if (name && db.rates[name] != null && !rate.value) rate.value = db.rates[name];
+  }
+  const row = {
+    qty: tr.querySelector(".qty").value,
+    rate: tr.querySelector(".rate").value
+  };
+  tr.querySelector(".amt").textContent = money(amount(row));
+  totals();
+}
+document.getElementById("materialBody").addEventListener("input", onTableInput);
+document.getElementById("labourBody").addEventListener("input", onTableInput);
+document.getElementById("materialBody").addEventListener("click", e => { if (e.target.classList.contains("del")) e.target.closest("tr").remove(), totals(); });
+document.getElementById("labourBody").addEventListener("click", e => { if (e.target.classList.contains("del")) e.target.closest("tr").remove(), totals(); });
+document.getElementById("addMaterial").onclick = () => renderRows("materialBody", readRows("materialBody").concat(blankRow()), "particularList");
+document.getElementById("addLabour").onclick = () => renderRows("labourBody", readRows("labourBody").concat(blankRow()), "labourList");
+document.getElementById("saveBtn").onclick = saveSlip;
+document.getElementById("newBtn").onclick = newSlip;
+document.getElementById("printBtn").onclick = printSlip;
+document.getElementById("dupBtn").onclick = () => showSlip(currentSlip(), true);
+document.getElementById("history").onclick = e => {
+  const id = e.target.dataset.open;
+  if (!id) return;
+  const slip = db.slips.find(s => s.id === id);
+  if (slip) showSlip(slip, false);
+};
+document.querySelectorAll(".tabs button").forEach(btn => btn.onclick = () => {
+  listTab = btn.dataset.list;
+  document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
+  renderListEditor();
+});
+document.getElementById("addListValue").onclick = () => {
+  remember(listTab, document.getElementById("newListValue").value);
+  document.getElementById("newListValue").value = "";
+  persist(); fillLists(); renderListEditor();
+};
+document.getElementById("listEditor").onclick = e => {
+  if (!e.target.dataset.remove) return;
+  db.lists[listTab].splice(Number(e.target.dataset.remove), 1);
+  persist(); fillLists(); renderListEditor();
+};
+document.getElementById("exportBtn").onclick = () => {
+  const blob = new Blob([JSON.stringify(db, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "cutting-slips.json";
+  a.click();
+};
+document.getElementById("importBtn").onclick = () => document.getElementById("importFile").click();
+document.getElementById("importFile").onchange = async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const incoming = JSON.parse(await file.text());
+  db.slips = incoming.slips || db.slips;
+  db.lists = Object.assign(db.lists, incoming.lists || {});
+  db.rates = Object.assign(db.rates, incoming.rates || {});
+  db.nextOrder = Math.max(db.nextOrder, incoming.nextOrder || 0);
+  persist(); fillLists(); renderHistory(); renderListEditor(); newSlip();
+};
+fillLists();
+renderHistory();
+renderListEditor();
+newSlip();
+</script>
+</body>
+</html>
